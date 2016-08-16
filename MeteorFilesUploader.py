@@ -1,5 +1,3 @@
-# install Meteor-Files from https://github.com/VeliovGroup/Meteor-Files
-# and python-meteor from https://github.com/hharnisc/python-meteor
 from MeteorClient import MeteorClient
 import uuid
 import math
@@ -8,10 +6,11 @@ import os
 import time
 import requests
 
-class FileUploader():
-  def __init__(self, client, collectionName, transport='ddp'):
+class MeteorFilesUploader():
+  def __init__(self, client, collectionName, transport='ddp', verbose=False):
     self.client = client
     self.collectionName = collectionName
+    self.verbose = verbose
     if not transport in ['ddp', 'http']:
         raise Exception('invalid transport.')
     self.transport = transport
@@ -42,6 +41,8 @@ class FileUploader():
       print(error)
       return
     self.finished = True
+    if self.verbose:
+        print('upload finished.')
 
   def _upload_start_callback(self, error, metaResult):
     if error:
@@ -53,32 +54,51 @@ class FileUploader():
         for i in xrange(self.chunkCount):
           if self.error:
             raise
-          print('sending: '+str(i)+'/'+str(self.chunkCount))
+          if self.verbose:
+              print('sending: '+str(i+1)+'/'+str(self.chunkCount))
           encoded_string = base64.b64encode(_file.read(self.chunkSize))
-          opts = {
-            "eof": False,
-            "fileId": self.fileId,
-            "binData": encoded_string,
-            "chunkId": i+1,
-          }
           if self.transport == 'ddp':
+              opts = {
+                "eof": False,
+                "fileId": self.fileId,
+                "binData": encoded_string,
+                "chunkId": i+1,
+              }
               self.client.call(self.methodNames['_Write'], [opts], self._upload_write_callback)
           else:
               baseurl = self.client.ddp_client.url
               assert baseurl.startswith('ws://') and baseurl.endswith('/websocket')
               uploadRoute = 'http' + baseurl[2:-10] + metaResult['uploadRoute']
-              r = requests.post(uploadRoute, json=opts)
+              headers = {
+                "x-eof": 0,
+                "x-fileid": self.fileId,
+                "x-chunkId": i+1,
+                'content-type': 'text/plain'
+              }
+              r = requests.post(uploadRoute, headers=headers, data=encoded_string)
               r.raise_for_status()
     except Exception as e:
       print(e)
       self.error = True
       self.client.call(self.methodNames['_Abort'], [self.fileId])
     else:
-      opts = {
-      "eof": True,
-      "fileId": self.fileId,
-      }
-      self.client.call(self.methodNames['_Write'], [opts], self._upload_end_callback)
+      if self.verbose:
+          print('sending EOF.')
+      if self.transport == 'ddp':
+          opts = {
+          "eof": True,
+          "fileId": self.fileId,
+          }
+          self.client.call(self.methodNames['_Write'], [opts], self._upload_end_callback)
+      else:
+          headers = {
+            "x-eof": 1,
+            "x-fileid": self.fileId,
+            'content-type': 'text/plain'
+          }
+          r = requests.post(uploadRoute, headers=headers, data='')
+          r.raise_for_status()
+          print('upload finished.')
 
   def upload(self, filePath, chunkSize = 'dynamic', fileType= None, fileId=None):
     self.filePath = filePath
@@ -118,10 +138,11 @@ class FileUploader():
     self.chunkSize = chunkSize
     self.fileBase64Size = fileBase64Size
     self.fileSize = fileSize
-
-    print('chunk size: {}, chunk count: {}'.format(chunkSize, chunkCount))
+    if self.verbose:
+        print('chunk size: {}, chunk count: {}'.format(chunkSize, chunkCount))
     error = False
-
+    if self.verbose:
+        print('start upload')
     opts ={
       "file": {"name":fname, "type":fileType, "size":10, "meta":{}},
       "fileId": self.fileId,
@@ -133,11 +154,13 @@ class FileUploader():
     returnMeta = self.transport == 'http'
     self.client.call(self.methodNames['_Start'], [opts, returnMeta], self._upload_start_callback)
 
-client = MeteorClient('ws://127.0.0.1:3000/websocket')
-client.connect()
-# work with https://github.com/VeliovGroup/Meteor-Files/tree/master/demo-simplest-upload
-client.subscribe('files.images.all');
-up = FileUploader(client, 'Images', transport='ddp')
-up.upload("test.jpeg")
-while True:
-  time.sleep(1)
+if __name__ == '__main__':
+    client = MeteorClient('ws://127.0.0.1:3000/websocket')
+    client.connect()
+
+    # upload example, work with Meteor-Files example: demo-simplest-upload
+    # server code: https://github.com/VeliovGroup/Meteor-Files/tree/master/demo-simplest-upload
+    client.subscribe('files.images.all');
+    uploader = MeteorFilesUploader(client, 'Images', transport='http', verbose=True)
+    uploader.upload("test.jpeg")
+    time.sleep(20)
