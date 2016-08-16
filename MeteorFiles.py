@@ -155,20 +155,20 @@ class Uploader():
     self.client.call(self.methodNames['_Start'], [opts, returnMeta], self._upload_start_callback)
 
 if __name__ == '__main__':
-client = MeteorClient('ws://127.0.0.1:3000/websocket')
-client.connect()
+    client = MeteorClient('ws://127.0.0.1:3000/websocket')
+    client.connect()
 
-# upload example, work with Meteor-Files example: demo-simplest-upload
-# server code: https://github.com/VeliovGroup/Meteor-Files/tree/master/demo-simplest-upload
-client.subscribe('files.images.all');
-uploader = Uploader(client, 'Images', transport='ddp', verbose=True)
+    # upload example, work with Meteor-Files example: demo-simplest-upload
+    # server code: https://github.com/VeliovGroup/Meteor-Files/tree/master/demo-simplest-upload
+    client.subscribe('files.images.all');
+    uploader = Uploader(client, 'Images', transport='ddp', verbose=True)
 
-#import time
-#t0 = time.time()
+    #import time
+    #t0 = time.time()
 
-uploader.upload("test.jpeg")
-while not uploader.finished:
-    time.sleep(0.1)
+    uploader.upload("test.jpeg")
+    while not uploader.finished:
+        time.sleep(0.1)
 
-#t1 = time.time()
-#print( 'time elapsed:%.1fs'%(t1-t0))
+    #t1 = time.time()
+    #print( 'time elapsed:%.1fs'%(t1-t0))
