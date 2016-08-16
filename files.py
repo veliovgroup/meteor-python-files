@@ -67,7 +67,8 @@ class FileUploader():
               baseurl = self.client.ddp_client.url
               assert baseurl.startswith('ws://') and baseurl.endswith('/websocket')
               uploadRoute = 'http' + baseurl[2:-10] + metaResult['uploadRoute']
-              requests.post(uploadRoute, data=opts)
+              r = requests.post(uploadRoute, json=opts)
+              r.raise_for_status()
     except Exception as e:
       print(e)
       self.error = True
@@ -110,7 +111,7 @@ class FileUploader():
     chunkCount = int(math.ceil(1.0*fileBase64Size / chunkSize));
 
     if self.transport == 'http':
-        chunkSize = int(round(chunkSize / 2))
+        chunkSize = int(round(1.0*chunkSize / 2))
 
     self.fileType = fileType
     self.chunkCount = chunkCount
@@ -136,7 +137,7 @@ client = MeteorClient('ws://127.0.0.1:3000/websocket')
 client.connect()
 # work with https://github.com/VeliovGroup/Meteor-Files/tree/master/demo-simplest-upload
 client.subscribe('files.images.all');
-up = FileUploader(client, 'Images', transport='http')
+up = FileUploader(client, 'Images', transport='ddp')
 up.upload("test.jpeg")
 while True:
   time.sleep(1)
