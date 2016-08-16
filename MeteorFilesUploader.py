@@ -98,6 +98,7 @@ class MeteorFilesUploader():
           }
           r = requests.post(uploadRoute, headers=headers, data='')
           r.raise_for_status()
+          self.finished = True
           print('upload finished.')
 
   def upload(self, filePath, chunkSize = 'dynamic', fileType= None, fileId=None):
@@ -128,10 +129,9 @@ class MeteorFilesUploader():
     elif chunkSize > 1048576:
       chunkSize = 1048576
     chunkSize = int(math.floor(1.0*chunkSize / 8) * 8);
-    chunkCount = int(math.ceil(1.0*fileBase64Size / chunkSize));
-
     if self.transport == 'http':
         chunkSize = int(round(1.0*chunkSize / 2))
+    chunkCount = int(math.ceil(1.0*fileBase64Size / chunkSize));
 
     self.fileType = fileType
     self.chunkCount = chunkCount
@@ -162,5 +162,13 @@ if __name__ == '__main__':
     # server code: https://github.com/VeliovGroup/Meteor-Files/tree/master/demo-simplest-upload
     client.subscribe('files.images.all');
     uploader = MeteorFilesUploader(client, 'Images', transport='http', verbose=True)
+
+    #import time
+    #t0 = time.time()
+
     uploader.upload("test.jpeg")
-    time.sleep(20)
+    while not uploader.finished:
+        time.sleep(0.1)
+
+    #t1 = time.time()
+    #print( 'time elapsed:%.1fs'%(t1-t0))
