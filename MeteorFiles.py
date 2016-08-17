@@ -8,6 +8,7 @@ import requests
 
 class Uploader():
   def __init__(self, client, collectionName, transport='ddp', verbose=False):
+    assert isinstance(MeteorClient, client)
     self.client = client
     self.collectionName = collectionName
     self.verbose = verbose
