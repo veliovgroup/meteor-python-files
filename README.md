@@ -15,7 +15,7 @@ client.connect()
 # server code: https://github.com/VeliovGroup/Meteor-Files/tree/master/demo-simplest-upload
 client.subscribe('files.images.all');
 
-uploader = MeteorFilesUploader(client, 'Images', transport='http', verbose=True)
+uploader = Uploader(client, 'Images', transport='http', verbose=True)
 
 uploader.upload("test.jpeg")
 while not uploader.finished:
