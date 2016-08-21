@@ -144,8 +144,15 @@ class Uploader():
     error = False
     if self.verbose:
         print('start upload')
-    opts ={
-      "file": {"name":fname, "type":fileType, "size":10, "meta":{}},
+    meta = {
+      "mime": fileType,
+      "mime-type": fileType,
+      "name": fname,
+      "size": fileSize,
+      "type": fileType,
+    }
+    opts = {
+      "file": {"name":fname, "type":fileType, "size":10, "meta":meta },
       "fileId": self.fileId,
       "chunkSize": chunkSize,
       "fileLength": 1 if chunkCount<=0 else chunkCount,
