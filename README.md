@@ -7,6 +7,7 @@ Official pyfiles (*to be used within* [ostrio:files](https://github.com/VeliovGr
 ```python
 from MeteorClient import MeteorClient
 from MeteorFiles import Uploader
+import time
 
 client = MeteorClient('ws://127.0.0.1:3000/websocket')
 client.connect()
