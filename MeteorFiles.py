@@ -8,7 +8,7 @@ import requests
 
 class Uploader():
   def __init__(self, client, collectionName, transport='ddp', verbose=False):
-    assert isinstance(MeteorClient, client)
+    assert isinstance(client, MeteorClient)
     self.client = client
     self.collectionName = collectionName
     self.verbose = verbose
@@ -102,7 +102,7 @@ class Uploader():
           self.finished = True
           print('upload finished.')
 
-  def upload(self, filePath, chunkSize = 'dynamic', fileType= None, fileId=None):
+  def upload(self, filePath, chunkSize = 'dynamic', meta={}, fileType= None, fileId=None):
     self.filePath = filePath
     self.fileId = fileId or str(uuid.uuid4())
     fpath,fname = os.path.split(filePath)
@@ -144,8 +144,6 @@ class Uploader():
     error = False
     if self.verbose:
         print('start upload')
-    meta = {
-    }
     opts = {
       "file": {"name":fname, "type":fileType, "size":fileSize, "meta":meta },
       "fileId": self.fileId,
@@ -163,8 +161,8 @@ if __name__ == '__main__':
 
     # upload example, work with Meteor-Files example: demo-simplest-upload
     # server code: https://github.com/VeliovGroup/Meteor-Files/tree/master/demo-simplest-upload
-    client.subscribe('files.images.all');
-    uploader = Uploader(client, 'Images', transport='ddp', verbose=True)
+    client.subscribe('files');
+    uploader = Uploader(client, 'files', transport='http', verbose=True)
 
     #import time
     #t0 = time.time()
