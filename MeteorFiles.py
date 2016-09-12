@@ -195,6 +195,7 @@ class Uploader():
         returnMeta = self.transport == 'http'
         self.client.call(self.methodNames['_Start'], [
                          opts, returnMeta], self._upload_start_callback)
+        return self.fileId
 
 if __name__ == '__main__':
     client = MeteorClient('ws://127.0.0.1:3000/websocket')
