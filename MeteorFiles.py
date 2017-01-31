@@ -95,8 +95,8 @@ class Uploader():
                                          opts], self._upload_write_callback)
                     else:
                         baseurl = self.client.ddp_client.url
-                        assert baseurl.startswith(
-                            'ws://') and baseurl.endswith('/websocket')
+                        assert (baseurl.startswith('ws://') or baseurl.startswith('wss://')) and baseurl.endswith('/websocket')
+
                         uploadRoute = 'http' + \
                             baseurl[2:-10] + metaResult['uploadRoute']
                         headers = {
@@ -108,8 +108,9 @@ class Uploader():
                         r = requests.post(
                             uploadRoute, headers=headers, data=encoded_string)
                         r.raise_for_status()
-        except Exception as e:
-            print(e)
+        except:
+            import traceback
+            traceback.print_exc()
             self.error = True
             self.client.call(self.methodNames['_Abort'], [self.fileId])
         else:
