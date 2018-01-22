@@ -103,9 +103,9 @@ class Uploader():
                         uploadRoute = 'http' + \
                             baseurl[2:-10] + metaResult['uploadRoute']
                         headers = {
-                            "x-eof": 0,
+                            "x-eof": '0',
                             "x-fileid": self.fileId,
-                            "x-chunkId": i + 1,
+                            "x-chunkId": str(i + 1),
                             'content-type': 'text/plain'
                         }
                         r = requests.post(
@@ -128,7 +128,7 @@ class Uploader():
                                  opts], self._upload_end_callback)
             else:
                 headers = {
-                    "x-eof": 1,
+                    "x-eof": '1',
                     "x-fileid": self.fileId,
                     'content-type': 'text/plain'
                 }
